@@ -17,13 +17,22 @@ if [ "$1" == "--enable" ]; then
 	popd  > /dev/null
 	SCRIPTDIR=$SCRIPT_PATH
 
-	echo "Create Autostart entry"
-	
-	echo "[Desktop Entry]" > $AUTOSTARTFILE
-	echo "Type=Application" >> $AUTOSTARTFILE
-	echo "Exec=$SCRIPTDIR/bakeupd" >> $AUTOSTARTFILE
-	echo "Terminal=false" >> $AUTOSTARTFILE
-	echo "Name=BakeUp your System" >> $AUTOSTARTFILE
+	if [ -d "/home/$USER/.config/autostart/" ]; then
+		echo "Create Autostart entry"
+		
+		echo "[Desktop Entry]" > $AUTOSTARTFILE
+		echo "Type=Application" >> $AUTOSTARTFILE
+		echo "Exec=$SCRIPTDIR/bakeupd" >> $AUTOSTARTFILE
+		echo "Terminal=false" >> $AUTOSTARTFILE
+		echo "Name=BakeUp your System" >> $AUTOSTARTFILE
+	elif [ -e "/home/$USER/.config/openbox/autostart" ]; then
+		zenity --question --title='BakeUp' --text="You are running Openbox.\nBakeUp will add a line to your autostart file\nThis could not be undo\nProceed?"
+		if [ "$?" == "0" ]; then
+			echo "$SCRIPTDIR/bakeupd" >> '/home/$USER/.config/openbox/autostart'
+		fi
+	else
+		zenity --info --title='BakeUp' --text="Could not add the script to autorun.\nPlease do this step by hand"
+	fi
 
 
 	exit 0
