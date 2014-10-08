@@ -7,6 +7,7 @@ if [ "$1" == "--install" ]; then
 	cp bakeup-change-disk /opt/bakeup/
 	cp bakeup-enable /opt/bakeup/
 	cp bakeup-plan /opt/bakeup/
+	cp bakeup-create-plan /opt/bakeup/
 	cp bakeupd /opt/bakeup/
 	chmod -R a+x /opt/bakeup/
 
@@ -38,5 +39,19 @@ if [ "$?" == "0" ]; then
 	SCRIPTDIR=$SCRIPT_PATH
 
 	kdesudo "$SCRIPTDIR/setup --install"
+
+	zenity --question --title='BakeUp' --text='Would you like to configure a backup for your home directory?'
+
+	if [ "$?" == "0" ]; then
+
+		sleep 1
+		# Set Disk
+		mkdir -p /home/$USER/.bakeup.rc/
+		/opt/bakeup/bakeup-change-disk
+		/opt/bakeup/bakeup-create-plan -d="$USER-Home" -s="/home/$USER/" --home
+		/opt/bakeup/bakeup
+
+
+	fi
 
 fi

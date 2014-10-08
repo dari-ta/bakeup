@@ -1,0 +1,58 @@
+#!/bin/bash
+# Create a new Backup-plan for BakeUp
+
+DESTINATION=''
+SOURCE=''
+ISHOME='NO'
+
+for i in "$@"
+do
+	case $i in
+		-d=*|--destination=*)
+			DESTINATION="${i#*=}"
+			shift
+			;;
+		-s=*|--source=*)
+			SOURCE="${i#*=}"
+			shift
+			;;
+		--home)
+			ISHOME="YES"
+			shift
+			;;
+		*)
+			#unknown option
+			;;
+	esac
+done
+
+if [ "$DESTINATION" == "" ]; then
+	DESTINATION=`zenity --entry --title='BakeUp' --text='What is the name of this backup?'`
+fi
+
+if [ "$SOURCE" == "" ]; then
+	SOURCE=`zenity --file-selection --directory --title='From where should we take backups?'`
+fi
+
+echo $DESTINATION
+echo $SOURCE
+echo $ISHOME
+
+mkdir -p /home/$USER/.bakeup.rc/$DESTINATION/
+PLANFILE=/home/$USER/.bakeup.rc/$DESTINATION/dir.rc
+
+echo "DESTINATION: $DESTINATION" > $PLANFILE
+echo "SOURCE: $SOURCE" >> $PLANFILE
+
+if [ "$ISHOME" == "YES" ]; then
+	# We set defaults for the Home Dir
+	echo "EXCLUDE: " >> $PLANFILE
+	echo 'EXCLUDE: ${EXCLUDE} --exclude=${SOURCE}Downloads' >> $PLANFILE
+	echo 'EXCLUDE: ${EXCLUDE} --exclude=${SOURCE}VM*' >> $PLANFILE
+	echo 'EXCLUDE: ${EXCLUDE} --exclude=${SOURCE}scripts' >> $PLANFILE
+	echo 'EXCLUDE: ${EXCLUDE} --exclude=${SOURCE}Dropbox' >> $PLANFILE
+	echo 'EXCLUDE: ${EXCLUDE} --exclude=${SOURCE}VirtualBox*' >> $PLANFILE
+	echo 'EXCLUDE: ${EXCLUDE} --exclude=${SOURCE}Desktop' >> $PLANFILE
+	echo 'EXCLUDE: ${EXCLUDE} --exclude=*.iso' >> $PLANFILE
+	echo 'EXCLUDE: ${EXCLUDE} --exclude=.*' >> $PLANFILE
+fi

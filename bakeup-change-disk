@@ -2,7 +2,7 @@
 # Change the BakeUp Backup Disk
 
 CONFIGFILE="/home/$USER/.bakeup.rc/config.rc"
-FILE=`zenity --file-selection --directory --title="BakeUp" --text="Select the BakeUp Storage Disk"`
+FILE=`zenity --file-selection --directory --title="Select the BakeUp Storage Disk"`
 
 case $? in
          0)
