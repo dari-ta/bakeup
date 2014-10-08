@@ -38,7 +38,14 @@ if [ "$?" == "0" ]; then
 	popd  > /dev/null
 	SCRIPTDIR=$SCRIPT_PATH
 
-	kdesudo "$SCRIPTDIR/setup --install"
+	if [ -x '/usr/bin/kdesudo' ]; then
+		kdesudo "$SCRIPTDIR/setup --install"
+	elif [ -x '/usr/bin/gksudo' ]; then
+		gksudo "$SCRIPTDIR/setup --install"
+	else
+		zenity --info --title='BakeUp' --text='Please run sudo setup --install in this directory'
+		exit
+	fi
 
 	zenity --question --title='BakeUp' --text='Would you like to configure a backup for your home directory?'
 
