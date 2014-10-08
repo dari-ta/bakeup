@@ -1,0 +1,16 @@
+#!/bin/bash
+# Change the BakeUp Backup Disk
+
+CONFIGFILE="/home/$USER/.bakeup.rc/config.rc"
+FILE=`zenity --file-selection --directory --title="BakeUp" --text="Select the BakeUp Storage Disk"`
+
+case $? in
+         0)
+                echo "\"$FILE\" selected."
+                echo "DEVICE: $FILE" > $CONFIGFILE
+                ;;
+         1)
+                echo "No Disk selected.";;
+        -1)
+                echo "An unexpected error has occurred.";;
+esac

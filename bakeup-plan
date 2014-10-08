@@ -1,0 +1,162 @@
+#!/usr/bin/env python
+#Args:
+# 0: Path to rc dir
+# 1: Name of Plan
+
+import pygtk
+pygtk.require('2.0')
+import gtk
+import os
+import csv
+import sys
+import re
+from os.path import expanduser
+
+class MyWindow(gtk.Window):
+	
+	def __init__(self):
+		self.rcdir = sys.argv[1]
+		self.ttl = sys.argv[2]
+
+		gtk.Window.__init__(self)
+		self.set_title(self.ttl)
+		#self.set_size_request(800, 500)
+		
+		self.mainbox = gtk.VBox(spacing=10)
+		self.add(self.mainbox)
+
+		self.dDest = gtk.HBox(spacing=10)
+		self.dLabel = gtk.Label()
+		self.dLabel.set_text("Destination")
+		self.dLabel.set_size_request(200, 30)
+		self.dDest.pack_start(self.dLabel, expand=False, fill=False)
+		self.dEntry = gtk.Entry()
+		self.dEntry.set_size_request(500, -1)
+		self.dDest.pack_start(self.dEntry)
+		#self.mainbox.pack_start(self.dDest)
+
+		self.sSource = gtk.HBox(spacing=10)
+		self.sLabel = gtk.Label()
+		self.sLabel.set_text("Source")
+		self.sLabel.set_size_request(200, 30)
+		self.sSource.pack_start(self.sLabel, expand=False, fill=False)
+		self.sEntry = gtk.Entry()
+		self.sEntry.set_size_request(500, -1)
+		self.sSource.pack_start(self.sEntry)
+		self.mainbox.pack_start(self.sSource)
+
+		self.eeExclude = gtk.HBox(spacing=10)
+		self.eeLabel = gtk.Label()
+		self.eeLabel.set_text("Exclude")
+		self.eeLabel.set_size_request(200, 30)
+		self.eeExclude.pack_start(self.eeLabel, expand=False, fill=False)
+		self.eeEntry = gtk.Entry()
+		self.eeEntry.set_size_request(400, -1)
+		self.eeExclude.pack_start(self.eeEntry)
+
+		# self.eeAddB = gtk.Button(label="...")
+		# self.eeAddB.set_size_request(50, -1)
+		# self.eeAddB.connect('clicked', self.c_btnAddB)
+		# self.eeExclude.pack_start(self.eeAddB)
+
+		self.eeAdd = gtk.Button(label="Add")
+		self.eeAdd.set_size_request(100, -1)
+		self.eeAdd.connect('clicked', self.c_btnAdd)
+		self.eeExclude.pack_start(self.eeAdd)
+		# self.eeRemove = gtk.Button(label="Remove")
+		# self.eeRemove.set_size_request(100, -1)
+		# self.eeExclude.pack_start(self.eeRemove)
+		self.mainbox.pack_start(self.eeExclude)
+
+
+		self.excludemodel = gtk.ListStore(str, bool)
+
+		self.eExclude = gtk.HBox(spacing=10)
+		self.eLabel = gtk.Label()
+		self.eLabel.set_text("")
+		self.eLabel.set_size_request(200, 30)
+		self.eExclude.pack_start(self.eLabel, expand=False, fill=False)
+
+		self.eList = gtk.TreeView(self.excludemodel)
+		self.eList.set_size_request(400, 400)
+		self.eExclude.pack_start(self.eList)
+
+		check_renderer = gtk.CellRendererToggle()
+		check_renderer.connect("toggled", self.exclude_toggled)
+		check_column = gtk.TreeViewColumn("", check_renderer, active=1)
+		self.eList.append_column(check_column)
+		
+		name_renderer = gtk.CellRendererText()
+		name_column = gtk.TreeViewColumn("", name_renderer, text=0)
+		self.eList.append_column(name_column)
+
+		self.mainbox.pack_start(self.eExclude)
+
+
+
+		self.bButtons = gtk.HBox(spacing=20)
+		self.bApply = gtk.Button(label="Apply")
+		self.bApply.set_size_request(100, -1)
+		self.bApply.connect('clicked', self.c_btnApply)
+		self.bButtons.pack_end(self.bApply, expand=False, fill=False)
+		self.bOK = gtk.Button(label="OK")
+		self.bOK.set_size_request(100, -1)
+		self.bOK.connect('clicked', self.c_btnOK)
+		self.bButtons.pack_end(self.bOK, expand=False, fill=False)
+		self.bCancel = gtk.Button(label="Cancel")
+		self.bCancel.set_size_request(100, -1)
+		self.bCancel.connect('clicked', self.c_btnCancel)
+		self.bButtons.pack_end(self.bCancel, expand=False, fill=False)
+		self.mainbox.pack_start(self.bButtons)
+
+		self.load_data()
+
+	def load_data(self):
+		lines = [line.strip() for line in open(self.rcdir + '/dir.rc')]
+		for line in lines:
+			matchObj = re.match('^(.+): (.*)$', line)
+			if matchObj:
+				if matchObj.group(1) == 'EXCLUDE':
+					matchObj2 = re.match('\$\{EXCLUDE\} --exclude=(.*)', matchObj.group(2))
+					if matchObj2:
+						self.excludemodel.append([matchObj2.group(1), True])
+				elif matchObj.group(1) == 'DESTINATION':
+					self.dEntry.set_text(matchObj.group(2))
+				elif matchObj.group(1) == 'SOURCE':
+					self.sEntry.set_text(matchObj.group(2))
+
+	def save_data(self):
+		f = open(self.rcdir + '/dir.rc','w')
+		f.write('DESTINATION: ' + self.dEntry.get_text() + '\n') # python will convert \n to os.linesep
+		f.write('SOURCE: ' + self.sEntry.get_text() + '\n')
+		f.write('EXCLUDE: \n')
+		for line in self.excludemodel:
+			if line[1]:
+				f.write('EXCLUDE: ${EXCLUDE} --exclude=' + line[0] + '\n')
+		f.write('\n')
+		f.close()
+
+	def c_btnApply(self, button):
+		self.save_data()
+
+	def c_btnOK(self, button):
+		self.save_data()
+		gtk.main_quit()
+
+	def c_btnCancel(self, button):
+		gtk.main_quit()
+
+	def exclude_toggled(self, widget, path):
+		self.excludemodel[path][1] = not self.excludemodel[path][1]
+
+	def c_btnAdd(self, button):
+		self.excludemodel.append([self.eeEntry.get_text(), True])
+		self.eeEntry.set_text('')
+		
+
+
+
+win = MyWindow()
+win.connect("delete-event", gtk.main_quit)
+win.show_all()
+gtk.main()

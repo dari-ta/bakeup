@@ -1,0 +1,110 @@
+#!/bin/bash
+# Incremental Backup with BakeUp
+
+### Settings #
+MAINBACKUPDIR="/tmp/"
+TIMESTAMP='.timestamp.dat'
+DATE="$(date +%d-%m-%Y)"
+TIME="$(date +%H.%M)"
+RCDIR="/home/$USER/.bakeup.rc/"
+
+# Load config.rc
+eval $(sed '/:/!d;/^ *#/d;s/:/ /;' < "/home/$USER/.bakeup.rc/config.rc" | while read -r key val
+do
+    str="$key=\"$val\""
+    echo "$str"
+done)
+echo "DEVICE: $DEVICE"
+MAINBACKUPDIR=$DEVICE
+
+### Start Daemon #
+echo "*** BakeUp Daemon ***"
+echo $RCDIR
+echo $DATE
+echo $TIME
+echo $MAINBACKUPDIR
+
+# go to / so you can use absolute paths
+cd /
+
+### Look for Storage device #
+if [ ! -d "${MAINBACKUPDIR}" ]; then
+	zenity --notification --text="Please mount BakeUp Storage" --timeout=1
+	while [[ ! -d "${MAINBACKUPDIR}" ]]; do
+		sleep 10
+		echo "."
+	done
+fi
+echo "Storage mounted!"
+
+### Walk throught rc files
+echo "*** RC Files ***"
+for i in $(find $RCDIR -type d)
+do
+	SOURCE=""
+	DESTINATION=""
+	EXCLUDE=""
+	if [ ! "$i" = "$RCDIR" ]; then
+		echo "$i/dir.rc"
+		### Set Config Options
+		eval $(sed '/:/!d;/^ *#/d;s/:/ /;' < "$i/dir.rc" | while read -r key val
+		do
+		    str="$key=\"$val\""
+		    echo "$str"
+		done)
+		echo SOURCE: $SOURCE
+		echo DESTINATION: $DESTINATION
+		echo EXCLUDE: $EXCLUDE
+
+		# set destination to absolute full path
+		ROTATEDESTINATION=$MAINBACKUPDIR/rotate/$DESTINATION/
+		DESTINATION=$MAINBACKUPDIR/$DESTINATION/
+		
+
+		### Make Backup dir 
+		mkdir -p ${DESTINATION}
+		if [ ! -d "${DESTINATION}" ]; then
+			zenity --error --title="BakeUp Error" --text="Could not create ${DESTINATION}"
+			exit 1
+		fi
+
+		### Load all Vars and look for last Backup file num
+		set -- ${DESTINATION}/backup-???.tgz
+		lastname=${!#}
+		echo $lastname
+		backupnr=${lastname##*backup-}
+		backupnr=${backupnr%%.*}
+		backupnr=${backupnr//\?/0}
+		backupnr=$[10#${backupnr}]
+		echo "Last Backup num: $backupnr"
+
+		if [ "$[backupnr++]" -ge 30 ]; then
+			echo "More than 30 backups!"
+			### Make rotate dir
+			mkdir -p ${ROTATEDESTINATION}/${DATE}-${TIME}
+			if [ ! -d "${ROTATEDESTINATION}/${DATE}-${TIME}" ]; then
+				zenity --error --title="BakeUp Error" --text="Could not create ${ROTATEDESTINATION}"
+			else
+				mv ${DESTINATION}/* ${ROTATEDESTINATION}/${DATE}-${TIME}
+			fi
+			backupnr=1
+		fi
+
+		backupnr=000${backupnr}
+		backupnr=${backupnr: -3}
+		filename=backup-${backupnr}.tgz
+
+		### Create the Backup
+		echo ${EXCLUDE}
+		tar -v -cpzf ${DESTINATION}/${filename} -g ${DESTINATION}/${TIMESTAMP} ${SOURCE} ${EXCLUDE}
+
+		### Check if Backup was successful
+		if [ $? -ne 0 ]; then
+			zenity --error --title="BakeUp Error" --text="Could not create the Backup ${filename}"
+		fi
+
+
+	fi
+done
+
+zenity --notification --text="BakedUp your System!" --timeout=1

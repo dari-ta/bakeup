@@ -1,0 +1,42 @@
+#!/bin/bash
+
+if [ "$1" == "--install" ]; then
+
+	mkdir /opt/bakeup/
+	cp bakeup /opt/bakeup/
+	cp bakeup-change-disk /opt/bakeup/
+	cp bakeup-enable /opt/bakeup/
+	cp bakeup-plan /opt/bakeup/
+	cp bakeupd /opt/bakeup/
+	chmod -R a+x /opt/bakeup/
+
+	DESKTOPFILE='/usr/share/applications/bakeup.desktop'
+	echo "[Desktop Entry]" > $DESKTOPFILE
+	echo "Type=Application" >> $DESKTOPFILE
+	echo "Exec=/opt/bakeup/bakeup" >> $DESKTOPFILE
+	echo "Terminal=false" >> $DESKTOPFILE
+	echo "Name=BakeUp" >> $DESKTOPFILE
+	echo "Categories=System;" >> $DESKTOPFILE
+
+	zenity --info --title='BakeUp' --text="installation successful!"
+	exit
+fi
+
+zenity --question --title='BakeUp' --text="Hello and Welcome to BakeUp!\n\nThis Setup will guide you through the installation of BakeUp\nProceed?"
+
+if [ "$?" == "0" ]; then
+
+	pushd . > /dev/null
+	SCRIPT_PATH="${BASH_SOURCE[0]}";
+	while([ -h "${SCRIPT_PATH}" ]); do
+	    cd "`dirname "${SCRIPT_PATH}"`"
+	    SCRIPT_PATH="$(readlink "`basename "${SCRIPT_PATH}"`")";
+	done
+	cd "`dirname "${SCRIPT_PATH}"`" > /dev/null
+	SCRIPT_PATH="`pwd`";
+	popd  > /dev/null
+	SCRIPTDIR=$SCRIPT_PATH
+
+	kdesudo "$SCRIPTDIR/setup --install"
+
+fi

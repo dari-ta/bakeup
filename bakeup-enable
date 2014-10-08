@@ -1,0 +1,38 @@
+#!/bin/bash
+# Enable the Backupscript
+
+AUTOSTARTDIR="/home/$USER/.config/autostart/"
+AUTOSTARTFILE=${AUTOSTARTDIR}bakeup.desktop
+
+if [ "$1" == "--enable" ]; then
+	# Enable
+	pushd . > /dev/null
+	SCRIPT_PATH="${BASH_SOURCE[0]}";
+	while([ -h "${SCRIPT_PATH}" ]); do
+	    cd "`dirname "${SCRIPT_PATH}"`"
+	    SCRIPT_PATH="$(readlink "`basename "${SCRIPT_PATH}"`")";
+	done
+	cd "`dirname "${SCRIPT_PATH}"`" > /dev/null
+	SCRIPT_PATH="`pwd`";
+	popd  > /dev/null
+	SCRIPTDIR=$SCRIPT_PATH
+
+	echo "Create Autostart entry"
+	
+	echo "[Desktop Entry]" > $AUTOSTARTFILE
+	echo "Type=Application" >> $AUTOSTARTFILE
+	echo "Exec=$SCRIPTDIR/bakeupd" >> $AUTOSTARTFILE
+	echo "Terminal=false" >> $AUTOSTARTFILE
+	echo "Name=BakeUp your System" >> $AUTOSTARTFILE
+
+
+	exit 0
+fi
+
+if [ "$1" == "--disable" ]; then
+	# Disable
+
+	echo "Remove Autostart Entry"
+	rm $AUTOSTARTFILE
+
+fi

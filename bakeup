@@ -1,0 +1,138 @@
+#!/usr/bin/env python
+
+import pygtk
+pygtk.require('2.0')
+import gtk
+import os
+import sys
+import csv
+import re
+from os.path import expanduser
+
+class MyWindow(gtk.Window):
+	
+	def __init__(self):
+		gtk.Window.__init__(self)
+		self.set_title("BakeUp")
+		#self.set_size_request(800, 500)
+		
+		self.mainbox = gtk.HBox()
+		self.add(self.mainbox)
+
+		self.topbox = gtk.VBox(spacing=20)
+		self.mainbox.pack_start(self.topbox, fill=False)
+		self.topbox.set_size_request(200, 500)
+
+		pixbuf_state = gtk.icon_theme_get_default().load_icon('security-high', 100, 0)
+		self.img_state = gtk.Image()
+		self.img_state.set_from_pixbuf(pixbuf_state)
+		self.topbox.pack_start(self.img_state, expand=False)
+
+		self.lbl_title = gtk.Label();
+		self.lbl_title.set_markup('<span size="20000">BakeUp</span>');
+		self.topbox.pack_start(self.lbl_title, expand=False);
+
+		self.chk_enabled = gtk.Button("Enable")
+		self.chk_enabled.connect('clicked', self.btn_enable_clicked)
+		self.topbox.pack_start(self.chk_enabled, expand=False)
+		if os.path.isfile(expanduser("~") + '/.config/autostart/bakeup.desktop'):
+			self.chk_enabled.set_label('Disable')
+
+
+		self.planbox = gtk.VBox(spacing=20)
+		self.mainbox.pack_start(self.planbox)
+
+
+		# Device
+		self.dBox =gtk.HBox(spacing=10)
+		self.dBox.set_size_request(600, 50)
+		self.planbox.pack_start(self.dBox, expand=False)
+		self.dImg = gtk.Image()
+		dPixbuf = gtk.icon_theme_get_default().load_icon('drive-harddisk', 50, 0)
+		self.dImg.set_from_pixbuf(dPixbuf)
+		self.dBox.pack_start(self.dImg, expand=False)
+		self.dLabel = gtk.Label()
+		self.dLabel.set_text("Storage Device")
+		self.dBox.pack_start(self.dLabel, expand=False)
+		self.dbBox = gtk.VBox()
+		self.dBox.pack_start(self.dbBox, fill=False)
+		self.dBtn = gtk.Button(label="Change Disk...")
+		self.dBtn.connect('clicked', self.btn_change_disk_clicked)
+		self.dbBox.pack_end(self.dBtn, fill=False, expand=False)
+		self.dBtn.set_size_request(150, 30)
+
+		# Backup Plans
+
+		self.str_plans = gtk.ListStore(gtk.gdk.Pixbuf, str, str)
+		home = expanduser("~")
+		path = home + '/.bakeup.rc/'
+		print path
+		for (dirpath, dirnames, filenames) in os.walk(path):
+		    for dirname in dirnames:
+		    	pixbuf = gtk.icon_theme_get_default().load_icon('folder', 40, 0)
+		        self.str_plans.append([pixbuf, dirname, path + '/' + dirname + '/'])
+
+		        pBox = gtk.HBox(spacing=10)
+		        pBox.set_size_request(600, 50)
+		        pImg = gtk.Image()
+		        pImg.set_from_pixbuf(pixbuf)
+		        pBox.pack_start(pImg, expand=False)
+		        pLabel = gtk.Label()
+		        pLabel.set_text(dirname)
+		        pBox.pack_start(pLabel, expand=False)
+		        pLink = gtk.LinkButton('#', "Edit...")
+		        pLink.rcfile = path + '/' + dirname + '/'
+		        pLink.plantitle = dirname
+		        pLink.connect("clicked", self.btn_edit_clicked)
+		        pBox.pack_end(pLink, expand=False)
+
+		        self.planbox.pack_start(pBox, expand=False)
+
+
+		self.iconview = gtk.IconView()
+		self.iconview.set_model(self.str_plans)
+		self.iconview.set_pixbuf_column(0)
+		self.iconview.set_text_column(1)
+
+		#self.mainbox.pack_start(self.iconview)
+		#self.iconview.set_size_request(800,400)
+
+		self.load_data()
+
+
+	def load_data(self):
+		lines = [line.strip() for line in open(expanduser('~') + '/.bakeup.rc/config.rc')]
+		for line in lines:
+			matchObj = re.match('^(.+): (.*)$', line)
+			if matchObj:
+				if matchObj.group(1) == 'DEVICE':
+					self.dLabel.set_text(matchObj.group(2))
+
+	def btn_edit_clicked(self, widget):
+		pathname = os.path.dirname(sys.argv[0])        
+		abspath = os.path.abspath(pathname)
+		os.system(abspath + '/bakeup-plan "' + widget.rcfile + '" "' + widget.plantitle + '"')
+		print 'sys.argv[0] =', sys.argv[0]
+
+	def btn_enable_clicked(self, widget):
+		pathname = os.path.dirname(sys.argv[0])        
+		abspath = os.path.abspath(pathname)
+		if os.path.isfile(expanduser("~") + '/.config/autostart/bakeup.desktop'):
+			os.system(abspath + '/bakeup-enable --disable')
+			self.chk_enabled.set_label('Enable')
+		else:
+			os.system(abspath + '/bakeup-enable --enable')
+			self.chk_enabled.set_label('Disable')
+
+	def btn_change_disk_clicked(self, widget):
+		pathname = os.path.dirname(sys.argv[0])        
+		abspath = os.path.abspath(pathname)
+		os.system(abspath + '/bakeup-change-disk')
+		load_data()
+		
+
+
+win = MyWindow()
+win.connect("delete-event", gtk.main_quit)
+win.show_all()
+gtk.main()
