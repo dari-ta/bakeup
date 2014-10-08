@@ -21,6 +21,9 @@ class MyWindow(gtk.Window):
 		gtk.Window.__init__(self)
 		self.set_title(self.ttl)
 		#self.set_size_request(800, 500)
+
+		pixbuf_state = gtk.icon_theme_get_default().load_icon('security-high', 100, 0)
+		self.set_icon(pixbuf_state)
 		
 		self.mainbox = gtk.VBox(spacing=10)
 		self.add(self.mainbox)

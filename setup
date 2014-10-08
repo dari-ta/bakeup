@@ -16,6 +16,7 @@ if [ "$1" == "--install" ]; then
 	echo "Type=Application" >> $DESKTOPFILE
 	echo "Exec=/opt/bakeup/bakeup" >> $DESKTOPFILE
 	echo "Terminal=false" >> $DESKTOPFILE
+	echo "Icon=security-high" >> $DESKTOPFILE
 	echo "Name=BakeUp" >> $DESKTOPFILE
 	echo "Categories=System;" >> $DESKTOPFILE
 

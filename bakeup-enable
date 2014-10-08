@@ -24,6 +24,7 @@ if [ "$1" == "--enable" ]; then
 		echo "Type=Application" >> $AUTOSTARTFILE
 		echo "Exec=$SCRIPTDIR/bakeupd" >> $AUTOSTARTFILE
 		echo "Terminal=false" >> $AUTOSTARTFILE
+		echo "Icon=security-high" >> $AUTOSTARTFILE
 		echo "Name=BakeUp your System" >> $AUTOSTARTFILE
 	elif [ -e "/home/$USER/.config/openbox/autostart" ]; then
 		zenity --question --title='BakeUp' --text="You are running Openbox.\nBakeUp will add a line to your autostart file\nThis could not be undo\nProceed?"
