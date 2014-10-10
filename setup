@@ -2,13 +2,24 @@
 
 if [ "$1" == "--install" ]; then
 
+	pushd . > /dev/null
+	SCRIPT_PATH="${BASH_SOURCE[0]}";
+	while([ -h "${SCRIPT_PATH}" ]); do
+	    cd "`dirname "${SCRIPT_PATH}"`"
+	    SCRIPT_PATH="$(readlink "`basename "${SCRIPT_PATH}"`")";
+	done
+	cd "`dirname "${SCRIPT_PATH}"`" > /dev/null
+	SCRIPT_PATH="`pwd`";
+	popd  > /dev/null
+	SCRIPTDIR=$SCRIPT_PATH
+
 	mkdir /opt/bakeup/
-	cp bakeup /opt/bakeup/
-	cp bakeup-change-disk /opt/bakeup/
-	cp bakeup-enable /opt/bakeup/
-	cp bakeup-plan /opt/bakeup/
-	cp bakeup-create-plan /opt/bakeup/
-	cp bakeupd /opt/bakeup/
+	cp ${SCRIPTDIR}/bakeup /opt/bakeup/
+	cp ${SCRIPTDIR}/bakeup-change-disk /opt/bakeup/
+	cp ${SCRIPTDIR}/bakeup-enable /opt/bakeup/
+	cp ${SCRIPTDIR}/bakeup-plan /opt/bakeup/
+	cp ${SCRIPTDIR}/bakeup-create-plan /opt/bakeup/
+	cp ${SCRIPTDIR}/bakeupd /opt/bakeup/
 	chmod -R a+x /opt/bakeup/
 
 	DESKTOPFILE='/usr/share/applications/bakeup.desktop'
