@@ -51,6 +51,34 @@ if [ "$?" == "0" ]; then
 	popd  > /dev/null
 	SCRIPTDIR=$SCRIPT_PATH
 
+
+	# Check if packages are installed
+	NEEDAPPS=''
+	APYTHON=`dpkg-query -W -f='${Status}\n' python`
+	if [ "$APYTHON" == "install ok installed " ]; then
+		NEEDAPPS="$NEEDAPPS python\n"
+	fi
+	APYGTK=`dpkg-query -W -f='${Status}\n' python-gtk2`
+	if [ "$APYGTK" == "install ok installed " ]; then
+		NEEDAPPS="$NEEDAPPS python-gtk2\n"
+	fi
+	ABASH=`dpkg-query -W -f='${Status}\n' bash`
+	if [ "$ABASH" == "install ok installed " ]; then
+		NEEDAPPS="$NEEDAPPS bash\n"
+	fi
+	AZENITY=`dpkg-query -W -f='${Status}\n' zenity`
+	if [ "$AZENITY" == "install ok installed " ]; then
+		NEEDAPPS="$NEEDAPPS zenity\n"
+	fi
+
+	if [ ! "$NEEDAPPS" == "" ]; then
+		zenity --error --title='BakeUp' --text="The following Packages are missing:\n$NEEDAPPS"
+		exit
+	fi
+
+
+
+
 	if [ -x '/usr/bin/kdesudo' ]; then
 		kdesudo "$SCRIPTDIR/setup --install"
 	elif [ -x '/usr/bin/gksudo' ]; then

@@ -4,9 +4,10 @@ BakeUp is a simple backup script for Bachups in Linux.
 
 ## Requirements
 
-* GTK 2
-* Python (with pygtk)
-* Bash
+* Zenity [zenity]
+* GTK 2 [gtk]
+* Python (with pygtk) [python, python-gtk2]
+* Bash [bash]
 
 Ubuntu is recommended (especially KDE), but maybe it will also work on other Desktop Environments and Distributions
 
