@@ -19,6 +19,7 @@ if [ "$1" == "--install" ]; then
 	cp ${SCRIPTDIR}/bakeup-enable /opt/bakeup/
 	cp ${SCRIPTDIR}/bakeup-plan /opt/bakeup/
 	cp ${SCRIPTDIR}/bakeup-create-plan /opt/bakeup/
+	cp ${SCRIPTDIR}/bakeup-postinstall /opt/bakeup/
 	cp ${SCRIPTDIR}/bakeupd /opt/bakeup/
 	chmod -R a+x /opt/bakeup/
 
@@ -59,18 +60,20 @@ if [ "$?" == "0" ]; then
 		exit
 	fi
 
-	zenity --question --title='BakeUp' --text='Would you like to configure a backup for your home directory?'
+	# zenity --question --title='BakeUp' --text='Would you like to configure a backup for your home directory?'
 
-	if [ "$?" == "0" ]; then
+	# if [ "$?" == "0" ]; then
 
-		sleep 1
-		# Set Disk
-		mkdir -p /home/$USER/.bakeup.rc/
-		/opt/bakeup/bakeup-change-disk
-		/opt/bakeup/bakeup-create-plan -d="$USER-Home" -s="/home/$USER/" --home
-		/opt/bakeup/bakeup
+	# 	sleep 1
+	# 	# Set Disk
+	# 	mkdir -p /home/$USER/.bakeup.rc/
+	# 	/opt/bakeup/bakeup-change-disk
+	# 	/opt/bakeup/bakeup-create-plan -d="$USER-Home" -s="/home/$USER/" --home
+	# 	/opt/bakeup/bakeup
 
 
-	fi
+	# fi
+
+	/opt/bakeup/bakeup
 
 fi

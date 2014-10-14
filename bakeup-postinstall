@@ -1,0 +1,92 @@
+#!/usr/bin/env python
+
+import pygtk
+import gtk
+import os
+import sys
+import signal
+import csv
+from os.path import expanduser
+
+class MyWindow(gtk.Window):
+	
+	def __init__(self):
+		gtk.Window.__init__(self)
+		self.set_title("BakeUp")
+		color = gtk.gdk.color_parse('#f5f5f5')
+		self.modify_bg(gtk.STATE_NORMAL, color)
+		self.set_size_request(700, 200)
+
+		self.mainbox = gtk.HBox()
+		self.add(self.mainbox)
+
+		self.imagebox = gtk.Image()
+		pixbuf = gtk.icon_theme_get_default().load_icon('security-high', 100, 0)
+		self.imagebox.set_from_pixbuf(pixbuf)
+		self.set_icon(pixbuf)
+		self.mainbox.pack_start(self.imagebox)
+
+		self.rightbox = gtk.VBox()
+		self.mainbox.pack_start(self.rightbox)
+
+		self.lbl_title = gtk.Label()
+		self.lbl_title.set_markup("<span size='23000'>Welcome to BakeUp!</span>")
+		self.rightbox.pack_start(self.lbl_title)
+		self.lbl_title.set_size_request(300, 50)
+
+		self.lbl_text = gtk.Label()
+		self.lbl_text.set_markup("BakeUp will manage your Backups for this system.\nDon't be afraid - you don't have to do much.\n"
+			+ "BakeUp can automatically create a Backup Plan for your home directory.\nThe only thing you have to do is to set your Storage Device\n\n"
+			+ "Would you like to create a default plan of your home directory now?")
+		self.lbl_text.set_size_request(400, 100)
+		self.rightbox.pack_start(self.lbl_text)
+
+
+		self.btnbox = gtk.HBox(spacing=20)
+		self.rightbox.pack_start(self.btnbox)
+
+		self.btn_add = gtk.Button(label="Create Plan")
+		self.btn_add.set_size_request(100, 30)
+		self.btn_add.connect("clicked", self.btn_add_click)
+		self.btnbox.pack_start(self.btn_add, fill=False)
+
+		self.btn_cancel = gtk.Button(label="No, Thanks")
+		self.btn_cancel.set_size_request(100, 30)
+		self.btn_cancel.connect("clicked", self.btn_cancel_click)
+		self.btnbox.pack_start(self.btn_cancel, fill=False)
+
+
+		lbl_spacing = gtk.Label()
+		lbl_spacing.set_size_request(300, 10)
+		self.rightbox.pack_start(lbl_spacing)
+
+	def btn_cancel_click(self, widget):
+		pathname = os.path.dirname(sys.argv[0])        
+		abspath = os.path.abspath(pathname)
+		os.system('zenity --info --title="BakeUp" --text="Now, please select the storage disk"')
+		os.system(abspath + "/bakeup-change-disk")
+
+		os.system("mkdir -p '" + expanduser('~') + "/.bakeup.rc'")
+
+		gtk.main_quit()
+
+	def btn_add_click(self, widget):
+		# Create a plan
+		pathname = os.path.dirname(sys.argv[0])        
+		abspath = os.path.abspath(pathname)
+		home = expanduser("~")
+		os.system(abspath + "/bakeup-create-plan --home -d=$USER -s=" + home)
+		os.system('zenity --info --title="BakeUp" --text="Now, please select the storage disk"')
+		os.system(abspath + "/bakeup-change-disk")
+
+		os.system("mkdir -p '" + expanduser('~') + "/.bakeup.rc'")
+
+		gtk.main_quit()
+
+
+
+
+win = MyWindow()
+win.connect("delete-event", gtk.main_quit)
+win.show_all()
+gtk.main()

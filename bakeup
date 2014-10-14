@@ -105,6 +105,8 @@ class MyWindow(gtk.Window):
 		cLink.connect("clicked", self.btn_add_plan_clicked)
 		cBox.pack_end(cLink, expand=False)
 		self.planbox.pack_start(cBox, expand=False)
+
+
 		self.load_data()
 
 
@@ -144,6 +146,11 @@ class MyWindow(gtk.Window):
 		abspath = os.path.abspath(pathname)
 		os.system(abspath + '/bakeup-create-plan')
 		
+
+if not os.path.exists(expanduser('~') + '/.bakeup.rc'):
+	pathname = os.path.dirname(sys.argv[0])        
+	abspath = os.path.abspath(pathname)
+	os.system(abspath + '/bakeup-postinstall')
 
 
 win = MyWindow()
