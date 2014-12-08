@@ -83,6 +83,8 @@ if [ "$?" == "0" ]; then
 		kdesudo "$SCRIPTDIR/setup --install"
 	elif [ -x '/usr/bin/gksudo' ]; then
 		gksudo "$SCRIPTDIR/setup --install"
+	elif [ -x '/usr/bin/gksu' ]; then
+		gksu "$SCRIPTDIR/setup --install"
 	else
 		zenity --info --title='BakeUp' --text='Please run sudo setup --install in this directory'
 		exit
